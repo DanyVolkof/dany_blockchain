@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Программа на Python для создания блокчейна
 # Для временной метки
 import datetime
@@ -6,8 +7,7 @@ import hashlib
 # Для хранения данных в блокчейне
 import json
 # Flask предназначен для создания веб-приложения, а jsonify - для
-# отображения блокчейнаn
-
+# отображения блокчейна
 from flask import Flask, jsonify
 import psycopg2
 import pandas as pd 
@@ -16,9 +16,9 @@ import pandas as pd
 class Blockchain:
 
     def postgre():
-        conn = psycopg2.connect(database='music_data \"music_data\"', user='postgres', password='1111', host='localhost', port='5432')
+        conn = psycopg2.connect(user='postgres', password='FireCrow99', host='localhost', port='5432')
         cursor = conn.cursor() 
-        cursor.execute("SELECT * from Music")
+        cursor.execute("SELECT * from public.music_data")
         df = cursor.fetchall() 
         df = pd.DataFrame(df) 
         print (df) 
@@ -28,6 +28,8 @@ class Blockchain:
     def __init__(self):
         self.chain = []
         self.create_block(proof=1, previous_hash='0')
+
+
 # Эта функция ниже создана для добавления дополнительных блоков в цепочку
     def create_block(self, proof, previous_hash):
         df = Blockchain.postgre() 
@@ -38,48 +40,50 @@ class Blockchain:
                   'album': str(df[2].iloc[len(self.chain)]), 
                   'number_of_songs_on_the_album': str(df[3].iloc[len(self.chain)]),
                   'date_of_publishing': str(df[4].iloc[len(self.chain)]), 
-                  'the_highest_place_on_the_billboard': str(df[5].iloc[len(self.chain)]),
-                  'record_label': str(df[6].iloc[len(self.chain)]),
+                  'record_label': str(df[5].iloc[len(self.chain)]),
                   'proof': proof, 
                   'previous_hash': previous_hash} 
         self.chain.append(block) 
         return block 
-# Эта функция ниже создана для отображения предыдущего блока
-    def print_previous_block(self):
-        return self.chain[-1]
-# Это функция для проверки работы и используется для успешного майнинга блока
-    def proof_of_work(self, previous_proof):
-        new_proof = 1
-        check_proof = False
-        while check_proof is False:
-            hash_operation = hashlib.sha256(
-                str(new_proof**2 - previous_proof**2).encode()).hexdigest()
-            if hash_operation[:5] == '00000':
-                check_proof = True
-            else:
-                new_proof += 1
-        return new_proof
-    
-    def hash(self, block):
-        encoded_block = json.dumps(block, sort_keys=True).encode()
-        return hashlib.sha256(encoded_block).hexdigest()
-    
-    def chain_valid(self, chain):
-        previous_block = chain[0]
-        block_index = 1
-        while block_index < len(chain):
-            block = chain[block_index]
-            if block['previous_hash'] != self.hash(previous_block):
-                return False
-            previous_proof = previous_block['proof']
-            proof = block['proof']
-            hash_operation = hashlib.sha256(
-                str(proof**2 - previous_proof**2).encode()).hexdigest()
-            if hash_operation[:5] != '00000':
-                return False
-            previous_block = block
-            block_index += 1
+# Эта функция ниже создана для отображения предыдущего блока 
+    def print_previous_block(self): 
+        return self.chain[-1] 
+     
+# Это функция для проверки работы и используется для успешного майнинга блока 
+    def proof_of_work(self, previous_proof): 
+        new_proof = 1 
+        check_proof = False 
+        while check_proof is False: 
+            hash_operation = hashlib.sha256( 
+                str(new_proof**2 - previous_proof**2).encode()).hexdigest() 
+            if hash_operation[:5] == '00000': 
+                check_proof = True 
+            else: 
+                new_proof += 1 
+        return new_proof 
+     
+    def hash(self, block): 
+        encoded_block = json.dumps(block, sort_keys=True).encode() 
+        return hashlib.sha256(encoded_block).hexdigest() 
+     
+    def chain_valid(self, chain): 
+        previous_block = chain[0] 
+        block_index = 1 
+        while block_index < len(chain): 
+            block = chain[block_index] 
+            if block['previous_hash'] != self.hash(previous_block): 
+                return False 
+            previous_proof = previous_block['proof'] 
+            proof = block['proof'] 
+            hash_operation = hashlib.sha256( 
+                str(proof**2 - previous_proof**2).encode()).hexdigest() 
+            if hash_operation[:5] != '00000': 
+                return False 
+            previous_block = block 
+            block_index += 1 
         return True
+    
+
 # Создание веб-приложения с использованием flask
 app = Flask(__name__)
 # Создаем объект класса blockchain
@@ -99,7 +103,7 @@ def mine_block():
                 'previous_hash': block['previous_hash']}
     return jsonify(response), 200
 # Отобразить блокчейн в формате json
-@app.route('/ display_chain', methods=['GET'])
+@app.route('/display_chain', methods=['GET'])
 def display_chain():
     response = {'chain': blockchain.chain,
                 'length': len(blockchain.chain)}
@@ -114,11 +118,5 @@ def valid():
         response = {'message': 'The Blockchain is not valid.'}
     return jsonify(response), 200
 # Запустите сервер flask локально
-#Запустите сервер flask локально 
-if __name__ == "__main__": 
-    app.run(host='0.0.0.0')
-
-
-
 if __name__ == "__main__":
-    app.run(host='10.180.96.254', port=5000)
+    app.run(host='0.0.0.0')
